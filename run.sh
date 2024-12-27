@@ -1,6 +1,14 @@
 #! /bin/bash
 
-gcc ./src/main.c -o jsh;
-./jsh;
-rm ./jsh;
+if [ ! -d "./bin" ]; then
+  mkdir bin;
+fi
+
+if [ -f "./bin/jsh" ]; then
+  rm ./bin/jsh
+fi
+
+gcc -Wall ./src/main.c -o ./bin/jsh;
+
+./bin/jsh;
 

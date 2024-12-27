@@ -8,5 +8,5 @@ if [ -f "./bin/jsh" ]; then
   rm ./bin/jsh
 fi
 
-gcc ./src/main.c -o ./bin/jsh;
+gcc -Wall ./src/main.c -o ./bin/jsh;
 
