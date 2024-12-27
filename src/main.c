@@ -4,20 +4,22 @@
 
 #define BUFF_SIZE 256
 
-int parseInput(char input[]) {
+void parseInput(char input[]) {
     int ptr = 0;
-    printf("String at index 1 is: %c\n", input[ptr]);
-    printf("String at index 2 is: %c\n", input[ptr + sizeof(char)]);
-
-    return 0;
+    char str[BUFF_SIZE];
+    while (input[ptr * sizeof(char)] != '\0') {
+        str[ptr] = input[ptr * sizeof(char)];
+        ptr++;
+    }
+    str[ptr+1] = '\0';
+    printf("String is: %s\n", str);
 }
 
 int main(int argc, char *argv[]) {
     while (true) {
         char input[BUFF_SIZE];
-        printf("jsh: ");
+        printf("jsh> ");
         if (fgets(input, sizeof(input), stdin) != NULL) {
-            printf("Hello world: %s\n", input);
             parseInput(input);
         } else {
             printf("Error");
