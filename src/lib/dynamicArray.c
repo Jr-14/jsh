@@ -1,4 +1,5 @@
 #include "dynamicArray.h"
+#include <stdio.h>
 
 void initArray(DynamicArray *a, size_t initialCapacity, size_t elementSize) {
   a->array = calloc(initialCapacity, elementSize);
@@ -29,6 +30,7 @@ void insert(DynamicArray *a, void *element) {
 
 void *getFromArray(DynamicArray *a, int index) {
   if ((unsigned long)index >= a->size) {
+    fprintf(stderr, "Index out of bounds. Size is: %lu, but got index: %d", a->size, index);
     exit(1);
   }
   return (char*)a->array + index * a->elementSize;
