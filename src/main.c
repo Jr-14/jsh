@@ -9,12 +9,12 @@ void parseInput(char input[]) {
     int ptr = 0;
     char str[BUFF_SIZE];
     unsigned long index = ptr * sizeof(char);
-    while (input[index] != '\0') {
+    while (input[index] != '\0' && ptr < BUFF_SIZE - 1) {
         str[index] = input[index];
         ptr++;
         index = ptr * sizeof(char);
     }
-    str[(ptr+1)*sizeof(char)] = '\0';
+    str[ptr] = '\0';
 
 
     printf("String is: %s\n", str);
