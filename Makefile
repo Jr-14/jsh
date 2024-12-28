@@ -3,7 +3,7 @@ CFLAGS = -g -Wall -Wextra -Iinclude # Flag for implicit rules. Turn on debug inf
 
 # Source and target
 SRC_DIR = src
-LIB_DIR = lib
+LIB_DIR = $(SRC_DIR)/lib
 OBJ_DIR = obj
 TARGET = jsh
 
