@@ -43,6 +43,7 @@ int main(int argc, char *argv[]) {
         printf("Last item from array is: %s\n", rs);
     }
 
+    freeArray(&strArray);
     return 0;
 }
 
