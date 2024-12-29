@@ -75,13 +75,14 @@ void executeBuiltInCommands(char *command[], int *status) {
 int readCommand(char *command, DynamicArray *paths, char *commandPath[]) {
     for (unsigned int i = 0; i < paths->size; i++) {
         char buf[256];
-        char *path = getFromArray(paths, i);
+        char *path = strdup(getFromArray(paths, i));
         snprintf(buf, sizeof(buf), "%s/%s", path, command);
         printf("Full path is %s\n", buf);
 
         int errno = access(buf, X_OK);
         if (errno == 0) {
-            strncpy(commandPath[0], buf, 256);
+            commandPath[0] = malloc(256 * sizeof(char));
+            strncpy(commandPath[0], strdup(buf), 256);
             return 0;
         }
     }
@@ -152,6 +153,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        free(command[0]);
         freeArray(&inputs);
         initArray(&inputs, 10, sizeof(char*));
     }
