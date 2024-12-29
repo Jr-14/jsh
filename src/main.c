@@ -50,7 +50,29 @@ void initialisePath(DynamicArray *path) {
     debugDynArr(path, "Initialised Paths");
 }
 
-int readCommand(char *command, DynamicArray *paths, char *commandPath) {
+void executeBuiltInCommands(char *command[], int *status) {
+    int ERR = -1;
+    int NO_RUN = 0;
+    int OK = 1;
+    if (strcmp(command[0], "exit") == 0) {
+        status = &OK;
+        exit(0);
+    } else if (strcmp(command[0], "cd") == 0) {
+        char *path = command[1];
+        if (strcmp(path, "..") == 0) {
+            char currDir[256];
+            getcwd(currDir, 256);
+        }
+        status = &OK;
+    } else if (strcmp(command[0], "path") == 0) {
+        char *path = getenv("PATH");
+        printf("%s\n", path);
+        status = &OK;
+    }
+    status = &NO_RUN;
+}
+
+int readCommand(char *command, DynamicArray *paths, char *commandPath[]) {
     for (unsigned int i = 0; i < paths->size; i++) {
         char buf[256];
         char *path = getFromArray(paths, i);
@@ -59,19 +81,12 @@ int readCommand(char *command, DynamicArray *paths, char *commandPath) {
 
         int errno = access(buf, X_OK);
         if (errno == 0) {
-            strncpy(commandPath, buf, 256);
+            strncpy(commandPath[0], buf, 256);
             return 0;
         }
     }
-    return -1;
-}
 
-int executeCommand(char *commandPath) {
-    char *args[2];
-    args[0] = commandPath;
-    args[1] = NULL;
-    int status = execv(commandPath, args);
-    return status;
+    return -1;
 }
 
 int main(int argc, char *argv[]) {
@@ -99,30 +114,42 @@ int main(int argc, char *argv[]) {
         parseInput(input, &inputs);
         debugDynArr(&inputs, "Received Commands");
 
-        char* command = getFromArray(&inputs, 0);
-        char *fullCommandPath = malloc(256 * sizeof(char));
-        int errnoReadCommand = readCommand(command, &path, fullCommandPath);
-        if (errnoReadCommand < 0) {
-            fprintf(stderr, "Error accessing command: %s\n", command);
-        }
+        // TODO-JR: Read and parse arguments for command
+        char* strCommand = getFromArray(&inputs, 0);
 
-        printf("Full command path is %s\n", fullCommandPath);
+        char *command[BUFF_SIZE];
+        command[0] = strCommand;
+        command[1] = NULL;
 
-        int status;
-
-        int pid = fork();
-        if (pid < 0) {
-            fprintf(stderr, "Failed to fork process\n");
-        } else if (pid == 0) {
-            // Child process
-            int errno = executeCommand(fullCommandPath);
-            if (errno == -1) {
-                fprintf(stderr, "Failed to exec process\n");
-                return 1;
+        int builtInCommandStatus = 0;
+        executeBuiltInCommands(command, &builtInCommandStatus);
+        if (builtInCommandStatus == -1) {
+            fprintf(stderr, "Failed to execute built in command '%s'", command[0]);
+            return -1;
+        } else if (builtInCommandStatus == 0) {
+            int errnoReadCommand = readCommand(strCommand, &path, command);
+            if (errnoReadCommand < 0) {
+                fprintf(stderr, "Error accessing command: %s\n", strCommand);
             }
-            return 0;
-        } else {
-            wait(&status);
+
+            printf("Full command with arguments is %s\n", *command);
+
+            int status;
+
+            int pid = fork();
+            if (pid < 0) {
+                fprintf(stderr, "Failed to fork process\n");
+            } else if (pid == 0) {
+                // Child process
+                int execStatus = execv(command[0], command);
+                if (execStatus == -1) {
+                    fprintf(stderr, "Failed to exec process\n");
+                    return 1;
+                }
+                return 0;
+            } else {
+                wait(&status);
+            }
         }
 
         freeArray(&inputs);
