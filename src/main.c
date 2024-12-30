@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
         debugDynArr(&inputs, "Received Commands");
 
         // TODO-JR: Read and parse arguments for command
-        char* strCommand = getFromArray(&inputs, 0);
+        char *strCommand = getFromArray(&inputs, 0);
 
         char *command[BUFF_SIZE];
         command[0] = strCommand;
