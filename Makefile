@@ -2,10 +2,11 @@ CC = gcc # Flag for implicit rules
 CFLAGS = -g -Wall -Wextra -Iinclude # Flag for implicit rules. Turn on debug info
 
 # Source and target
+BIN_DIR = bin
 SRC_DIR = src
 LIB_DIR = $(SRC_DIR)/lib
-OBJ_DIR = obj
-TARGET = jsh
+OBJ_DIR = $(BIN_DIR)/obj
+TARGET = $(BIN_DIR)/jsh
 
 # Collect all source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
