@@ -9,6 +9,11 @@
 
 #define BUFF_SIZE 256
 
+typedef struct {
+    char *cwd;
+    DynamicArray *path;
+} ShellConfig;
+
 void parseInput(char input[], DynamicArray *strArray) {
     int ptr = 0;
     int strSize = 0;
@@ -50,32 +55,51 @@ void initialisePath(DynamicArray *path) {
     debugDynArr(path, "Initialised Paths");
 }
 
-void executeBuiltInCommands(char *command[], int *status) {
+void initialiseShellConfig(ShellConfig *config) {
+    config->path = malloc(sizeof(DynamicArray));
+    if (config->path == NULL) {
+        fprintf(stderr, "Failed to allocate memory for path\n");
+        exit(1);
+    }
+    initArray(config->path, 10, sizeof(char*));
+    insert(config->path, "/bin");
+    insert(config->path, "/usr/bin");
+
+    config->cwd = getenv("HOME");
+    if (config->cwd == NULL) {
+        fprintf(stderr, "Error cannot find HOME environment variable\n");
+        exit(1);
+    } 
+    chdir(config->cwd);
+};
+
+int executeBuiltInCommands(DynamicArray *commands, ShellConfig *config) {
     int ERR = -1;
     int NO_RUN = 0;
     int OK = 1;
-    if (strcmp(command[0], "exit") == 0) {
-        status = &OK;
+
+    char *command = getFromArray(commands, 0);
+
+    if (strcmp(command, "exit") == 0) {
         exit(0);
-    } else if (strcmp(command[0], "cd") == 0) {
-        char *path = command[1];
-        if (strcmp(path, "..") == 0) {
-            char currDir[256];
-            getcwd(currDir, 256);
-        }
-        status = &OK;
-    } else if (strcmp(command[0], "path") == 0) {
+        return ERR;
+    } else if (strcmp(command, "cd") == 0) {
+        char *path = getFromArray(commands, 1);
+        chdir(path);
+        config->cwd = getcwd(config->cwd, 256 * sizeof(char));
+        return OK;
+    } else if (strcmp(command, "path") == 0) {
         char *path = getenv("PATH");
         printf("%s\n", path);
-        status = &OK;
+        return OK;
     }
-    status = &NO_RUN;
+    return NO_RUN;
 }
 
-int readCommand(char *command, DynamicArray *paths, char *commandPath[]) {
-    for (unsigned int i = 0; i < paths->size; i++) {
+int readCommand(char *command, ShellConfig *config, char *commandPath[]) {
+    for (unsigned int i = 0; i < config->path->size; i++) {
         char buf[256];
-        char *path = strdup(getFromArray(paths, i));
+        char *path = strdup(getFromArray(config->path, i));
         snprintf(buf, sizeof(buf), "%s/%s", path, command);
         printf("Full path is %s\n", buf);
 
@@ -91,22 +115,15 @@ int readCommand(char *command, DynamicArray *paths, char *commandPath[]) {
 }
 
 int main(int argc, char *argv[]) {
-    DynamicArray inputs, path;
+    ShellConfig config;
+    DynamicArray inputs;
     initArray(&inputs, 10, sizeof(char*));
-    initArray(&path, 10, sizeof(char*));
 
-    initialisePath(&path);
-
-    char *currentDirectory = getenv("HOME");
-    if (currentDirectory == NULL) {
-        fprintf(stderr, "Error cannot find HOME environment variable\n");
-        exit(1);
-    }
-    chdir(currentDirectory);
+    initialiseShellConfig(&config);
 
     char input[BUFF_SIZE];
     while (true) {
-        printf("jsh %s> ", currentDirectory);
+        printf("jsh %s> ", config.cwd);
         if (fgets(input, BUFF_SIZE, stdin) == NULL) {
             fprintf(stderr, "Error reading command");
             exit(1);
@@ -122,13 +139,13 @@ int main(int argc, char *argv[]) {
         command[0] = strCommand;
         command[1] = NULL;
 
-        int builtInCommandStatus = 0;
-        executeBuiltInCommands(command, &builtInCommandStatus);
+        int builtInCommandStatus = executeBuiltInCommands(&inputs, &config);
+        printf("Built in command status: %d\n", builtInCommandStatus);
         if (builtInCommandStatus == -1) {
             fprintf(stderr, "Failed to execute built in command '%s'", command[0]);
             return -1;
         } else if (builtInCommandStatus == 0) {
-            int errnoReadCommand = readCommand(strCommand, &path, command);
+            int errnoReadCommand = readCommand(strCommand, &config, command);
             if (errnoReadCommand < 0) {
                 fprintf(stderr, "Error accessing command: %s\n", strCommand);
             }
@@ -153,7 +170,6 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        free(command[0]);
         freeArray(&inputs);
         initArray(&inputs, 10, sizeof(char*));
     }
