@@ -37,7 +37,7 @@ $(OBJ_DIR):
 
 # Clean up object files and the binary
 clean:
-	rm -rf $(OBJ_DIR) $(TARGET)
+	rm -rf $(BIN_DIR)
 
 run: all
 	./$(TARGET)
