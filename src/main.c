@@ -93,6 +93,7 @@ void freeExecutable(Executable *e) {
 
 void parseInput(char input[], DynamicArray *strArray) {
     int ptr = 0;
+    int createdStr = 0;
     int strSize = 0;
     char str[BUFF_SIZE];
     while (input[ptr] != '\0' && ptr < BUFF_SIZE - 1) {
@@ -102,17 +103,22 @@ void parseInput(char input[], DynamicArray *strArray) {
 
         if (str[strSize - 1] == ' ') {
             str[strSize - 1] = '\0';
+            printf("Received string: %s\n", str);
             char *newStr = strdup(str);
             insert(strArray, (void *)newStr);
+            printf("String input received: %s\n", (char*)getFromArray(strArray, createdStr));
             strSize = 0;
             str[0] = '\0';
+            createdStr++;
         }
     }
 
     if (str[strSize - 1] == '\n') {
         str[strSize - 1] = '\0';
+        printf("Received string: %s\n", str);
         char *newStr = strdup(str);
-        insert(strArray, (void *)newStr);
+        insert(strArray, (char*)newStr);
+        printf("String input received: %s\n", (char*)getFromArray(strArray, createdStr));
     } 
 }
 
@@ -120,8 +126,7 @@ void debugDynArr(DynamicArray *inputs, char *name) {
     printf("---------- %s ----------\n", name);
     if (inputs->size) {
         for (unsigned int i = 0; i < inputs->size; i++) {
-            char *rs = (char *)getFromArray(inputs, i);
-            printf("ind: %d -- %s\n", i, rs);
+            printf("ind: %d -- %s\n", i, (char*)getFromArray(inputs, i));
         }
     }
 }
@@ -182,8 +187,14 @@ int main(int argc, char *argv[]) {
         DynamicArray inputs;
         Executable exc;
 
+        char *randomStr = "hello world, my name is jeff";
+        printf("random str: %s\n", randomStr);
+
+        // printf("Size of char*: %lu\n", sizeof(char*)); --- 8 bytes
         initArray(&inputs, 10, sizeof(char*));
+        // initArray(&inputs, 10, 32);
         parseInput(input, &inputs);
+        printf("Random 3rd param: %s\n", (char*)getFromArray(&inputs, 2));
         debugDynArr(&inputs, "Received Commands");
 
         createExecutable(&inputs, &config, &exc);
