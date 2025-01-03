@@ -175,7 +175,14 @@ int executeBuiltIn(Executable *e, ShellConfig *config) {
     return NO_RUN;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    // Handle arg counter to the binary
+    // TODO: Change this to handle an text file input
+    if (argc > 1) {
+        fprintf(stderr, "jsh: Argument count greater than 1 is not handled\n");
+        exit(1);
+    }
+
     ShellConfig config;
     initialiseShellConfig(&config);
 
