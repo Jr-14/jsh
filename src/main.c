@@ -103,10 +103,8 @@ void parseInput(char input[], DynamicArray *strArray) {
 
         if (str[strSize - 1] == ' ') {
             str[strSize - 1] = '\0';
-            // printf("Received string: %s\n", str);
             char *newStr = strdup(str);
             insert(strArray, &newStr);
-            // printf("String input received: %s\n", *(char**)getFromArray(strArray, createdStr));
             strSize = 0;
             str[0] = '\0';
             createdStr++;
@@ -115,10 +113,8 @@ void parseInput(char input[], DynamicArray *strArray) {
 
     if (str[strSize - 1] == '\n') {
         str[strSize - 1] = '\0';
-        // printf("Received string: %s\n", str);
         char *newStr = strdup(str);
         insert(strArray, &newStr);
-        // printf("String input received: %s\n", *(char**)getFromArray(strArray, createdStr));
     } 
 }
 
@@ -149,7 +145,6 @@ void initialiseShellConfig(ShellConfig *config) {
     initArray(config->path, 10, sizeof(char*));
     insert(config->path, "/bin");
     insert(config->path, "/usr/bin");
-    // debugDynArr(config->path, "Initial paths");
 
     config->cwd = getenv("HOME");
     if (config->cwd == NULL) {
