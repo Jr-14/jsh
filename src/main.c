@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include "lib/dynamicArray.h"
 
 #define BUFF_SIZE 256
@@ -19,6 +20,7 @@ typedef struct {
     char *path;
     int argc;
     bool builtIn;
+    char *redirStdout;
     char **argv;
 } Executable;
 
@@ -27,6 +29,7 @@ int createExecutable(DynamicArray *inputs, ShellConfig *config, Executable *e) {
     e->path = NULL;
     e->argc = 0;
     e->builtIn = false;
+    e->redirStdout = NULL;
 
     e->argv = malloc((inputs->size + 1) * sizeof(char*));
     if (e->argv == NULL) {
@@ -34,15 +37,24 @@ int createExecutable(DynamicArray *inputs, ShellConfig *config, Executable *e) {
         exit(1);
     }
 
+    bool redir = false;
     for (unsigned int i = 0; i <inputs->size; i++) {
-        e->argv[i] = strdup(*(char**)getFromArray(inputs, i));
-        if (e->argv[i] == NULL) {
-            perror("strdup failed");
-            exit(1);
+        char *text = strdup(*(char**)getFromArray(inputs, i));
+        if (redir) {
+            e->redirStdout = text;
         }
-        e->argc++;
+        if (strcmp(text, ">") == 0) {
+            redir = true;
+        } else {
+            e->argv[i] = strdup(*(char**)getFromArray(inputs, i));
+            if (e->argv[i] == NULL) {
+                perror("strdup failed");
+                exit(1);
+            }
+            e->argc++;
+        }
     }
-    e->argv[inputs->size] = NULL;
+    e->argv[e->argc] = NULL;
 
     if (strcmp(e->command, "exit") == 0
         || strcmp(e->command, "cd") == 0
@@ -56,7 +68,6 @@ int createExecutable(DynamicArray *inputs, ShellConfig *config, Executable *e) {
         char buf[256];
         char *path = strdup(getFromArray(config->path, i));
         snprintf(buf, sizeof(buf), "%s/%s", path, e->command);
-        // printf("Full path is %s\n", buf);
 
         if (access(buf, X_OK) == 0) {
             e->path = strdup(buf);
@@ -202,6 +213,7 @@ int main(int argc, char *argv[]) {
         parseInput(input, &inputs);
 
         int cexcStatus = createExecutable(&inputs, &config, &exc);
+        debugDynArrString(&inputs, "Received commands");
         freeArray(&inputs);
         
         if (cexcStatus == -1) {
@@ -217,15 +229,26 @@ int main(int argc, char *argv[]) {
                 return -1;
             }
         } else {
+
             int pid = fork();
+
             if (pid < 0) {
                 fprintf(stderr, "Failed to fork process\n");
             } else if (pid == 0) {
                 // Child process
+                int filefd;
+                if (exc.redirStdout) {
+                    filefd = open(exc.redirStdout, O_WRONLY|O_CREAT, 0666);
+                    close(1); // Close stdout
+                    dup(filefd);
+                }
                 int execStatus = execv(exc.path, exc.argv);
                 if (execStatus == -1) {
                     fprintf(stderr, "Failed to exec process\n");
                     return 1;
+                }
+                if (filefd) {
+                    close(filefd);
                 }
                 return 0;
             } else {
