@@ -180,7 +180,7 @@ int executeBuiltIn(Executable *e, ShellConfig *config) {
     return NO_RUN;
 }
 
-int main(int argc, char *argv[]) {
+int main() {
     ShellConfig config;
     initialiseShellConfig(&config);
 
@@ -196,14 +196,12 @@ int main(int argc, char *argv[]) {
         DynamicArray inputs;
         Executable exc;
 
-        char *randomStr = "hello world, my name is jeff";
-
         initArray(&inputs, 10, sizeof(char*));
         parseInput(input, &inputs);
-        // debugDynArrString(&inputs, "Received Commands");
 
         int cexcStatus = createExecutable(&inputs, &config, &exc);
         freeArray(&inputs);
+        
         if (cexcStatus == -1) {
             fprintf(stderr, "jsh: command not found: %s\n", exc.command);
             freeExecutable(&exc);
@@ -213,11 +211,10 @@ int main(int argc, char *argv[]) {
         if (exc.builtIn) {
             int builtInCommandStatus = executeBuiltIn(&exc, &config);
             if (builtInCommandStatus == -1) {
-                fprintf(stderr, "Failed to execute built in command '%s'", exc.command);
+                fprintf(stderr, "Failed to execute built in command '%s'\n", exc.command);
                 return -1;
             }
         } else {
-            int status;
             int pid = fork();
             if (pid < 0) {
                 fprintf(stderr, "Failed to fork process\n");
