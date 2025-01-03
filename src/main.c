@@ -149,7 +149,7 @@ void initialiseShellConfig(ShellConfig *config) {
     initArray(config->path, 10, sizeof(char*));
     insert(config->path, "/bin");
     insert(config->path, "/usr/bin");
-    debugDynArr(config->path, "Initial paths");
+    // debugDynArr(config->path, "Initial paths");
 
     config->cwd = getenv("HOME");
     if (config->cwd == NULL) {
@@ -202,13 +202,18 @@ int main(int argc, char *argv[]) {
         parseInput(input, &inputs);
         // debugDynArrString(&inputs, "Received Commands");
 
-        createExecutable(&inputs, &config, &exc);
+        int cexcStatus = createExecutable(&inputs, &config, &exc);
+        freeArray(&inputs);
+        if (cexcStatus == -1) {
+            fprintf(stderr, "jsh: command not found: %s\n", exc.command);
+            freeExecutable(&exc);
+            continue;
+        }
 
         if (exc.builtIn) {
             int builtInCommandStatus = executeBuiltIn(&exc, &config);
-            // printf("Built in command status: %d\n", builtInCommandStatus);
             if (builtInCommandStatus == -1) {
-                fprintf(stderr, "Failed to execute built in command '%s'", (char *)getFromArray(&inputs, 0));
+                fprintf(stderr, "Failed to execute built in command '%s'", exc.command);
                 return -1;
             }
         } else {
@@ -228,8 +233,6 @@ int main(int argc, char *argv[]) {
                 wait(&pid);
             }
         }
-
-        freeArray(&inputs);
         freeExecutable(&exc);
     }
 
