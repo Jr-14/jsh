@@ -213,7 +213,6 @@ int main(int argc, char *argv[]) {
         parseInput(input, &inputs);
 
         int cexcStatus = createExecutable(&inputs, &config, &exc);
-        debugDynArrString(&inputs, "Received commands");
         freeArray(&inputs);
         
         if (cexcStatus == -1) {
