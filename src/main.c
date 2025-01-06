@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include "lib/dynamicArray.h"
 
 #define BUFF_SIZE 256
@@ -23,6 +24,22 @@ typedef struct {
     char *redirStdout;
     char **argv;
 } Executable;
+
+char *ltrim(char *s) {
+    while(isspace(*s)) s++;
+    return s;
+}
+
+char *rtrim(char *s) {
+    char* back = s + strlen(s);
+    while(isspace(*--back));
+    *(back+1) = '\0';
+    return s;
+}
+
+char *trim(char *s) {
+    return rtrim(ltrim(s)); 
+}
 
 int createExecutable(DynamicArray *inputs, ShellConfig *config, Executable *e) {
     e->command = strdup(*(char**)getFromArray(inputs, 0));
@@ -112,7 +129,7 @@ void parseInput(char input[], DynamicArray *strArray) {
         ptr++;
         strSize++;
 
-        if (str[strSize - 1] == ' ') {
+        if (str[strSize - 1] == '&') {
             str[strSize - 1] = '\0';
             char *newStr = strdup(str);
             insert(strArray, &newStr);
@@ -211,6 +228,8 @@ int main(int argc, char *argv[]) {
 
         initArray(&inputs, 10, sizeof(char*));
         parseInput(input, &inputs);
+        debugDynArrString(&inputs, "Idk just wanna have a look at &");
+        return 0;
 
         int cexcStatus = createExecutable(&inputs, &config, &exc);
         freeArray(&inputs);
