@@ -131,7 +131,7 @@ void parseInput(char input[], DynamicArray *strArray) {
 
         if (str[strSize - 1] == '&') {
             str[strSize - 1] = '\0';
-            char *newStr = strdup(str);
+            char *newStr = trim(strdup(str));
             insert(strArray, &newStr);
             strSize = 0;
             str[0] = '\0';
@@ -141,7 +141,7 @@ void parseInput(char input[], DynamicArray *strArray) {
 
     if (str[strSize - 1] == '\n') {
         str[strSize - 1] = '\0';
-        char *newStr = strdup(str);
+        char *newStr = trim(strdup(str));
         insert(strArray, &newStr);
     } 
 }
