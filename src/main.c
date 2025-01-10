@@ -119,7 +119,10 @@ void freeExecutable(Executable *e) {
     e->builtIn = false;
 }
 
-void parseInput(char input[], DynamicArray *strArray) {
+void parseInput(char input[], DynamicArray *executables, ShellConfig *config) {
+    DynamicArray strArray;
+    initArray(&strArray, 10, sizeof(char*));
+
     int ptr = 0;
     int createdStr = 0;
     int strSize = 0;
@@ -132,18 +135,24 @@ void parseInput(char input[], DynamicArray *strArray) {
         if (str[strSize - 1] == '&') {
             str[strSize - 1] = '\0';
             char *newStr = trim(strdup(str));
-            insert(strArray, &newStr);
+            insert(&strArray, &newStr);
             strSize = 0;
             str[0] = '\0';
             createdStr++;
+
+            // TODO: How do I add this to the dynamic array?
+            Executable *exc = malloc(sizeof(Executable));
+            int cexcStatus = createExecutable(&strArray, config, exc);
         }
     }
 
     if (str[strSize - 1] == '\n') {
         str[strSize - 1] = '\0';
         char *newStr = trim(strdup(str));
-        insert(strArray, &newStr);
+        insert(&strArray, &newStr);
     } 
+
+    freeArray(&strArray);
 }
 
 void debugDynArr(DynamicArray *inputs, char *name) {
@@ -216,23 +225,26 @@ int run() {
             exit(1);
         }
 
-        DynamicArray inputs;
+        DynamicArray executables;
         Executable exc;
 
-        initArray(&inputs, 10, sizeof(char*));
-        parseInput(input, &inputs);
-        debugDynArrString(&inputs, "Idk just wanna have a look at &");
+        initArray(&executables, 10, sizeof(DynamicArray*));
+        // TODO-JR: This needs a fix
+        parseInput(input, &executables);
+        // debugDynArrString(&inputs, "Idk just wanna have a look at &");
         return 0;
 
+        // TODO-JR: Fix creating single executables
         int cexcStatus = createExecutable(&inputs, &config, &exc);
-        freeArray(&inputs);
+        // freeArray(&inputs);
         
-        if (cexcStatus == -1) {
-            fprintf(stderr, "jsh: command not found: %s\n", exc.command);
-            freeExecutable(&exc);
-            continue;
-        }
+        // if (cexcStatus == -1) {
+        //     fprintf(stderr, "jsh: command not found: %s\n", exc.command);
+        //     freeExecutable(&exc);
+        //     continue;
+        // }
 
+        // TODO-JR: See how builtins are executable with parallel execution
         if (exc.builtIn) {
             int builtInCommandStatus = executeBuiltIn(&exc, &config);
             if (builtInCommandStatus == -1) {
