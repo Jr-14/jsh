@@ -35,18 +35,21 @@ void test_strsep_no_dupstring(char *_inputString, char *_delimeter) {
 }
 
 int main() {
+    // Test delimiter without surrounding white-spaces
     char *inputString = "hello-world-wide";
     char *delimeter = "-";
 
     test_strsep_with_dupstring(inputString, delimeter);
     test_strsep_no_dupstring(inputString, delimeter);
 
+    // Test delimiter with surrounding white-spaces
     inputString = "cd .. & ls -al & pwd & whoami";
     delimeter = "&";
 
     test_strsep_with_dupstring(inputString, delimeter);
     test_strsep_no_dupstring(inputString, delimeter);
 
+    // Test delimiter not found in the string
     inputString = "cd .. & ls -al & pwd & whoami";
     delimeter = "*";
 
