@@ -46,6 +46,12 @@ int main() {
 
     test_strsep_with_dupstring(inputString, delimeter);
     test_strsep_no_dupstring(inputString, delimeter);
+
+    inputString = "cd .. & ls -al & pwd & whoami";
+    delimeter = "*";
+
+    test_strsep_with_dupstring(inputString, delimeter);
+    test_strsep_no_dupstring(inputString, delimeter);
     
     return 0;
 };
